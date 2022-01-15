@@ -1,0 +1,37 @@
+{
+  "name": "git-watcher",
+  "version": "1.0.0",
+  "description": "Lightweight tool for subscribing to git pushes",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "nodemon src/index.ts",
+    "prettier": "prettier --write .",
+    "prettier-check": "prettier --check ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isaac-j-miller/git-watcher.git"
+  },
+  "author": "Isaac Miller",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/isaac-j-miller/git-watcher/issues"
+  },
+  "homepage": "https://github.com/isaac-j-miller/git-watcher#readme",
+  "dependencies": {
+    "argparse": "^2.0.1",
+    "axios": "^0.24.0"
+  },
+  "devDependencies": {
+    "@types/argparse": "^2.0.10",
+    "@types/express": "^4.17.13",
+    "@types/jest": "^27.4.0",
+    "chalk": "^4.1.2",
+    "express": "^4.17.2",
+    "jest": "^27.4.7",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.5.1",
+    "typescript": "^4.5.4"
+  }
+}
