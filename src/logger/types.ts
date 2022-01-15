@@ -1,6 +1,6 @@
 export type LogFormat = "json" | "text";
 export enum LogLevel {
-  TRACE = 0,
+  VERBOSE = 0,
   DEBUG,
   INFO,
   WARN,
@@ -9,7 +9,7 @@ export enum LogLevel {
 }
 
 export interface Logger {
-  trace: (...mesages: any[]) => void;
+  verbose: (...mesages: any[]) => void;
   debug: (...mesages: any[]) => void;
   info: (...mesages: any[]) => void;
   warn: (...mesages: any[]) => void;

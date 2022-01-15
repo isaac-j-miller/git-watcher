@@ -5,7 +5,7 @@ import { Logger, LogLevel } from "./types";
 
 export function getLogger(config: RuntimeConfig, source: string): Logger {
   const { logFilePath, logLevel, logFormat } = config;
-  const level = logLevel ?? LogLevel.TRACE;
+  const level = logLevel ?? LogLevel.DEBUG;
   if (logFilePath) {
     return new FileLogger(logFilePath, logFormat ?? "json", level, source);
   } else {

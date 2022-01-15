@@ -82,14 +82,23 @@ export class Poller {
         const { stdout, stderr } = resp;
         const infoLogs = processLogs(stdout);
         const errLogs = processLogs(stderr);
-        infoLogs.forEach((infoLog) => actionLogger.info(infoLog));
-        errLogs.forEach((errLog) => actionLogger.error(errLog));
+        infoLogs.forEach((infoLog) => infoLog && actionLogger.info(infoLog));
+        errLogs.forEach((errLog) => errLog && actionLogger.error(errLog));
       }
     }
   }
-  private getUrl() {
+  private getUrl(useAuth: boolean): string {
     const { config, auth } = this;
-    return `https://${auth}api.github.com/repos/${config.username}/${config.repoName}/branches/${config.branchName}`;
+    const url = new URL(config.overrideEndpoint ?? "https://api.github.com");
+    return `${url.protocol}//${useAuth ? auth : ""}${url.host}/repos/${
+      config.username
+    }/${config.repoName}/branches/${config.branchName}`;
+  }
+  private getAuthUrl() {
+    return this.getUrl(true);
+  }
+  private getSanitizedUrl(): string {
+    return this.getUrl(false);
   }
   private getAxiosRequestConfig(): AxiosRequestConfig | undefined {
     const { config } = this;
@@ -100,16 +109,17 @@ export class Poller {
     }
   }
   private poll = async () => {
-    const { logger } = this;
+    const { logger, config } = this;
     try {
-      logger.trace(`Polling ${this.getSanitizedUrl()}...`);
+      logger.verbose(`Polling ${this.getSanitizedUrl()}...`);
       const resp = await axios.get<BranchResponse>(
-        this.getUrl(),
+        this.getAuthUrl(),
         this.getAxiosRequestConfig()
       );
       const { commit } = resp.data;
       const sha = commit.sha;
       if (sha !== this.currentSha) {
+        logger.info(`New commit SHA detected: ${this.currentSha} -> ${sha}`);
         this.currentSha = sha;
         await this.takeActions();
       }
@@ -117,16 +127,22 @@ export class Poller {
       const e = err as AxiosError;
       if (!e.isAxiosError) {
         logger.fatal(`Code error while processing github API response: ${e}`);
+        return;
       }
-      if (e.response.status === 403 || e.response.status === 401) {
+      if (e.response?.status === 403 || e.response?.status === 401) {
         logger.fatal(`Error: Invalid credentials when polling github API`);
+      } else if (e.response?.status === 404) {
+        logger.error(
+          `Error: Branch/repo ${config.username}/${config.repoName}/${config.branchName} not found!`
+        );
+      } else if (e.code === "ECONNREFUSED") {
+        logger.error(`Error: ${e.message}`);
+      } else {
+        logger.error(`Error while polling: ${err}`);
       }
     }
   };
-  private getSanitizedUrl(): string {
-    const { config } = this;
-    return `https://api.github.com/repos/${config.username}/${config.repoName}/branches/${config.branchName}`;
-  }
+
   async init() {
     const { config, logger } = this;
     logger.info(
@@ -135,7 +151,7 @@ export class Poller {
       } seconds...`
     );
     this.interval = setInterval(
-      () => this.poll,
+      this.poll,
       config.pollingIntervalSeconds * 1000
     );
   }

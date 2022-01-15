@@ -21,7 +21,7 @@ export class FileLogger extends ConsoleLogger implements Logger {
     }
   }
   private async writeToFile(lines: string[]): Promise<void> {
-    await appendFile(this.logFilePath, lines.join("\n"));
+    await appendFile(this.logFilePath, lines.join("\n") + "\n");
   }
   protected override log(level: LogLevel, messages: any[]): boolean {
     const shouldLog = super.log(level, messages);

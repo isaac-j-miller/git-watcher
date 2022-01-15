@@ -5,7 +5,7 @@ export class ConsoleLogger implements Logger {
   constructor(protected logLevel: LogLevel, protected source: string) {}
   private getColor(level: LogLevel): chalk.Chalk {
     switch (level) {
-      case LogLevel.TRACE:
+      case LogLevel.VERBOSE:
         return chalk.gray;
       case LogLevel.DEBUG:
         return chalk.magenta;
@@ -28,7 +28,7 @@ export class ConsoleLogger implements Logger {
     message: any
   ): string {
     const prefix = `${color(
-      `[${LogLevel[level].toUpperCase()}] ${date.toUTCString()} [${
+      `[${LogLevel[level].toUpperCase()}] ${date.toISOString()} [${
         this.source
       }] `
     )}`;
@@ -50,9 +50,7 @@ export class ConsoleLogger implements Logger {
       this.formatMessage(color, level, date, msg)
     );
     switch (level) {
-      case LogLevel.TRACE:
-        console.trace(...formatted);
-        break;
+      case LogLevel.VERBOSE:
       case LogLevel.DEBUG:
         console.debug(...formatted);
         break;
@@ -74,8 +72,8 @@ export class ConsoleLogger implements Logger {
   createChild(source: string): Logger {
     return new ConsoleLogger(this.logLevel, `${this.source}::${source}`);
   }
-  trace(...messages: any[]) {
-    this.log(LogLevel.TRACE, messages);
+  verbose(...messages: any[]) {
+    this.log(LogLevel.VERBOSE, messages);
   }
   debug(...messages: any[]) {
     this.log(LogLevel.DEBUG, messages);

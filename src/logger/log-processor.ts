@@ -62,6 +62,8 @@ export function processLogs(rawLog: string): any[] {
           outputLines.push(line);
         }
       }
+    } else {
+      outputLines.push(line);
     }
   }
   if (currentString) {

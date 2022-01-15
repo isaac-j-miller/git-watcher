@@ -2,12 +2,13 @@
   "username": "isaac-j-miller",
   "repoName": "mirror-v2",
   "branchName": "main",
+  "overrideEndpoint": "http://localhost:3000",
   "pollingIntervalSeconds": 10,
   "onNewCommit": [
     {
       "actionType": "inline-script",
       "inlineScript": "echo 'Horray! a new commit!'",
-      "name": "test-file-script"
+      "name": "test-inline-script"
     },
     {
       "cwd": ".",
@@ -18,5 +19,6 @@
     }
   ],
   "logFormat": "json",
-  "logFilePath": "./logfile"
+  "logFilePath": ".logfile",
+  "logLevel": 0
 }

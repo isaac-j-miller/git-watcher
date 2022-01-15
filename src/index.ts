@@ -13,7 +13,9 @@ parser.add_argument("configFile");
 
 async function main() {
   // TODO: fix this
-  const unparsedArgs = process.argv.slice(2);
+  const indexOf = process.argv.findIndex((arg) => arg.endsWith("index.ts"));
+  const unparsedArgs = process.argv.slice(indexOf + 1);
+  console.log(indexOf, unparsedArgs);
   const args: CliArgs = parser.parse_args(unparsedArgs);
   const { configFile } = args;
   const config = Configuration.getInstance(path.resolve(configFile));

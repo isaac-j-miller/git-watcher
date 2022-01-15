@@ -6,6 +6,8 @@
   "scripts": {
     "test": "jest",
     "start": "nodemon --watch ./src src/index.ts ./test-config-file.json",
+    "start-inspect": "nodemon --exec 'node --inspect -r ts-node/register' --watch ./src src/index.ts ./test-config-file.json",
+    "start-mock": "ts-node ./src/mocks/index.ts",
     "prettier": "prettier --write .",
     "prettier-check": "prettier --check ."
   },
@@ -32,6 +34,7 @@
     "jest": "^27.4.7",
     "nodemon": "^2.0.15",
     "prettier": "^2.5.1",
+    "ts-node": "^10.4.0",
     "typescript": "^4.5.4"
   }
 }

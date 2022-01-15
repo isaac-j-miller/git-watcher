@@ -19,15 +19,15 @@ export type OnCommitAction = {
 );
 
 export type RuntimeConfig = {
-  personalAccessTokenEnvVar?: string;
-  personalAccessToken?: string;
-  overrideEndpoint?: string;
   username: string;
   repoName: string;
   branchName: string;
   pollingIntervalSeconds: number;
-  extraHeaders: Record<string, string>;
   onNewCommit: OnCommitAction[];
+  extraHeaders?: Record<string, string>;
+  personalAccessTokenEnvVar?: string;
+  personalAccessToken?: string;
+  overrideEndpoint?: string;
   logFilePath?: string;
   logFormat?: LogFormat;
   logLevel?: LogLevel;
