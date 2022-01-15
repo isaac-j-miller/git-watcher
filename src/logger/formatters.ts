@@ -14,7 +14,7 @@ const formatJson: LogFormatter = (
   date: Date
 ): string => {
   return JSON.stringify({
-    timestamp: date.toUTCString(),
+    timestamp: date.toISOString(),
     level,
     source,
     message: JSON.stringify(message),
@@ -29,7 +29,7 @@ const formatText: LogFormatter = (
 ): string => {
   return `[${LogLevel[
     level
-  ].toUpperCase()}] ${date.toUTCString()} [${source}] ${
+  ].toUpperCase()}] ${date.toISOString()} [${source}] ${
     typeof message === "string" ? message : JSON.stringify(message)
   }`;
 };
