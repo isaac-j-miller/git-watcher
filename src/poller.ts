@@ -1,10 +1,10 @@
 import { exec, ExecException } from "child_process";
 import { promisify } from "util";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
-import { OnCommitAction, RuntimeConfig } from "config/types";
-import { Logger } from "logger/types";
-import { getLogger } from "logger";
-import { processLogs } from "logger/log-processor";
+import { OnCommitAction, RuntimeConfig } from "./config/types";
+import { Logger } from "./logger/types";
+import { getLogger } from "./logger";
+import { processLogs } from "./logger/log-processor";
 
 const asyncExec = promisify(exec);
 

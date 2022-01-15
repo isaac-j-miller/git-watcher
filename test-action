@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo "Horray! a new commit! (from script file). args: ${@}"

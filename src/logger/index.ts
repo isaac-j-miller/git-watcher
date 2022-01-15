@@ -1,4 +1,4 @@
-import { RuntimeConfig } from "config/types";
+import { RuntimeConfig } from "../config/types";
 import { ConsoleLogger } from "./console-logger";
 import { FileLogger } from "./file-logger";
 import { Logger, LogLevel } from "./types";

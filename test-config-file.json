@@ -1,0 +1,22 @@
+{
+  "username": "isaac-j-miller",
+  "repoName": "mirror-v2",
+  "branchName": "main",
+  "pollingIntervalSeconds": 10,
+  "onNewCommit": [
+    {
+      "actionType": "inline-script",
+      "inlineScript": "echo 'Horray! a new commit!'",
+      "name": "test-file-script"
+    },
+    {
+      "cwd": ".",
+      "actionType": "file-script",
+      "scriptFilePath": "./test-action",
+      "scriptArgs": ["--arg1", "arg2"],
+      "name": "test-file-script"
+    }
+  ],
+  "logFormat": "json",
+  "logFilePath": "./logfile"
+}

@@ -16,6 +16,9 @@ export class FileLogger extends ConsoleLogger implements Logger {
   ) {
     super(logLevel, source);
     this.formatter = getFormatter(logFormat);
+    if (!fs.existsSync(this.logFilePath)) {
+      fs.writeFileSync(this.logFilePath, "", { encoding: "utf8" });
+    }
   }
   private async writeToFile(lines: string[]): Promise<void> {
     await appendFile(this.logFilePath, lines.join("\n"));

@@ -1,9 +1,9 @@
-import { LogFormat, LogLevel } from "logger/types";
+import { LogFormat, LogLevel } from "../logger/types";
 
 type OnCommitActionType = "inline-script" | "file-script";
 
 export type OnCommitAction = {
-  cwd: string;
+  cwd?: string;
   actionType: OnCommitActionType;
   name?: string;
 } & (
@@ -21,6 +21,7 @@ export type OnCommitAction = {
 export type RuntimeConfig = {
   personalAccessTokenEnvVar?: string;
   personalAccessToken?: string;
+  overrideEndpoint?: string;
   username: string;
   repoName: string;
   branchName: string;
