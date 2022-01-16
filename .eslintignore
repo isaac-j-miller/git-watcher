@@ -3,3 +3,5 @@ build
 node_modules
 .logfile
 webpack.config.js
+.tmp
+schema
