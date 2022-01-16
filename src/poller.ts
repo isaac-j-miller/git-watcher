@@ -241,7 +241,7 @@ export class Poller {
           config.webhookPort ?? 80
         }`
       );
-      this.app.get("/health", (req, res) => res.send());
+      this.app.get("/health", (_req, res) => res.send());
       this.app.listen(config.webhookPort ?? 80);
     }
   }
