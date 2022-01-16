@@ -1,6 +1,6 @@
 {
   "name": "lite-ci",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "super lightweight CI tool",
   "main": "main.js",
   "bin": {

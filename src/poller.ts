@@ -76,28 +76,31 @@ export class PollerListener {
     action: OnEventAction
   ): Promise<{ stdout: string; stderr: string } | undefined> {
     const { logger } = this;
-    logger.info(`Running ${this.getActionName(action)}...`);
+    const actionName = this.getActionName(action);
+    logger.info(`Running ${actionName}...`);
     try {
       if (action.actionType === "inline-script") {
-        return asyncExec(action.inlineScript, {
+        const res = await asyncExec(action.inlineScript, {
           cwd: action.cwd,
         });
+        logger.info(`Successfully executed ${actionName}`);
+        return res;
       } else if (action.actionType === "file-script") {
-        return asyncExec(
+        const res = await asyncExec(
           `${action.scriptFilePath} ${(action.scriptArgs ?? []).join(" ")}`,
           {
             cwd: action.cwd,
           }
         );
+        logger.info(`Successfully executed ${actionName}`);
+        return res;
       } else {
         throw new Error(`Unknown action type: ${(action as any).actionType}`);
       }
     } catch (err) {
       const e = err as ExecException;
       logger.error(
-        `Failed to execute ${this.getActionName(action)} (code ${e.code}): ${
-          e.name
-        } ${e.message}`
+        `Failed to execute ${actionName} (code ${e.code}): ${e.name} ${e.message}`
       );
       return undefined;
     }
