@@ -1,6 +1,6 @@
 {
   "name": "lite-ci",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "super lightweight CI tool",
   "main": "main.js",
   "bin": {
@@ -21,6 +21,15 @@
     "check-generated-schema": "ts-json-schema-generator --path ./src/config/types.ts --type RuntimeConfig --out .tmp/RuntimeConfig.json && diff -q .tmp/RuntimeConfig.json schema/RuntimeConfig.json",
     "check": "npm run check-ts && npm test && npm run prettier-check && npm run lint && npm run check-generated-schema"
   },
+  "keywords": [
+    "CI",
+    "deployment",
+    "lightweight",
+    "express",
+    "typescript",
+    "github",
+    "webhook"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/isaac-j-miller/lite-ci.git"
