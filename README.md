@@ -1,4 +1,4 @@
-# git-watcher
+# lite-ci
 
 super lightweight CI tool
 
@@ -14,16 +14,16 @@ This project requires Nodejs (verified with 14.x, 15.x, and 16.x) and npm, so ma
 
 ## NPM installation
 
-To install using NPM (or equivalent) run `npm install git-watcher`
+To install using NPM (or equivalent) run `npm install lite-ci`
 
 ## Git installation
 
-To install by cloning the git repo, clone the repo (`git clone https://github.com/isaac-j-miller/git-watcher`). Then install the dependencies with `npm install`. Finally, build the project with `npm run build`.
+To install by cloning the git repo, clone the repo (`git clone https://github.com/isaac-j-miller/lite-ci`). Then install the dependencies with `npm install`. Finally, build the project with `npm run build`.
 
 # Usage
 
 After installing using the instructions in the previous section, the usage of this project is fairly straightforward. You will need to write a config file (see `test-config-file.json` for an example) according to the schema in `schema/RuntimeConfig.json`. When you run the program, it will validate the runtime configuration and error out if it is invalid.
-Once you've written your config file, you can start up the mini CI server using `npx git-watcher {config file path}` if you opted to install using npm, or `./git-watcher {config file path}` if you opted to install by cloning the git repo. You can add the `--verbose` flag to enable verbose logging, overriding the loglevel specified in your config file.
+Once you've written your config file, you can start up the mini CI server using `npx lite-ci {config file path}` if you opted to install using npm, or `./lite-ci {config file path}` if you opted to install by cloning the git repo. You can add the `--verbose` flag to enable verbose logging, overriding the loglevel specified in your config file.
 
 # Configuration
 
@@ -134,7 +134,7 @@ For example, to configure logging so that logs to file are JSON-formatted with l
 
 # Quick Start Guide
 
-To get started, install the project using `npm install git-watcher`. Then, set up a config file in a directory of your choice. The actions defined are just examples, so replace them with whatever is appropriate for your setup.
+To get started, install the project using `npm install lite-ci`. Then, set up a config file in a directory of your choice. The actions defined are just examples, so replace them with whatever is appropriate for your setup.
 Template 1 (polling subscription):
 
 ```json
@@ -226,7 +226,7 @@ Template 2 (webhook subscription):
 
 Let's say for the webhook configuration, your server's public IP is 123.123.123.123 and you have NGINX mapping port 8000 to port 80. So you would configure your GitHub webhook to send requests to http://123.123.123.123:80/webhooks/repository-name. IMPORTANT: you must select application/json as the content type.
 
-After setting up the config file, just modify your startup config on your server to run `npx git-watcher {config-file-path}` on startup!
+After setting up the config file, just modify your startup config on your server to run `npx lite-ci {config-file-path}` on startup!
 
 # Contribute
 

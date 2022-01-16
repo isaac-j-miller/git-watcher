@@ -1,8 +1,11 @@
 {
-  "name": "git-watcher",
+  "name": "lite-ci",
   "version": "1.0.0",
   "description": "super lightweight CI tool",
   "main": "main.js",
+  "bin": {
+    "lite-ci": "node ./main.js"
+  },
   "scripts": {
     "test": "jest",
     "test-inspect": "node --inspect ./node_modules/jest/bin/jest.js --watch",
@@ -13,18 +16,19 @@
     "prettier-check": "prettier --check .",
     "lint": "eslint . --ext .ts",
     "build": "webpack build && npm run generate-schema && cp -a ./schema ./dist && cp ./package.json ./dist/package.json",
-    "generate-schema": "ts-json-schema-generator --path ./src/config/types.ts --type RuntimeConfig --out schema/RuntimeConfig.json"
+    "generate-schema": "ts-json-schema-generator --path ./src/config/types.ts --type RuntimeConfig --out schema/RuntimeConfig.json",
+    "check": "npm test && npm run prettier-check && npm run lint"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/isaac-j-miller/git-watcher.git"
+    "url": "git+https://github.com/isaac-j-miller/lite-ci.git"
   },
   "author": "Isaac Miller",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/isaac-j-miller/git-watcher/issues"
+    "url": "https://github.com/isaac-j-miller/lite-ci/issues"
   },
-  "homepage": "https://github.com/isaac-j-miller/git-watcher#readme",
+  "homepage": "https://github.com/isaac-j-miller/lite-ci#readme",
   "dependencies": {
     "ajv": "^6.12.6",
     "argparse": "^2.0.1",
