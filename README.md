@@ -1,4 +1,5 @@
 [![CI](https://github.com/isaac-j-miller/lite-ci/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/isaac-j-miller/lite-ci/actions/workflows/ci.yaml)
+[![CodeQL](https://github.com/isaac-j-miller/lite-ci/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/isaac-j-miller/lite-ci/actions/workflows/codeql-analysis.yml)
 [![Publish](https://github.com/isaac-j-miller/lite-ci/actions/workflows/publish.yaml/badge.svg?branch=main)](https://github.com/isaac-j-miller/lite-ci/actions/workflows/publish.yaml)
 ![npm](https://img.shields.io/npm/v/lite-ci)
 
