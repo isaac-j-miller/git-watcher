@@ -29,7 +29,9 @@ type WebhookRequest = {
   };
 };
 
-export class Poller {
+// TODO: break up this mega class into a poller and a listener
+
+export class PollerListener {
   private intervals: NodeJS.Timer[];
   private auth: Map<string, string>;
   private currentShaMap: Map<string, string>;
@@ -51,7 +53,7 @@ export class Poller {
     this.actionLogger = this.logger.createChild("action");
   }
   private getKey(subscription: Subscription): string {
-    return `${subscription.username}:${subscription.repoName}:${subscription.branchName}`;
+    return `${subscription.username}:${subscription.repositoryName}:${subscription.branchName}`;
   }
   private getPat(subscription: PollSubscription): string | null {
     if (subscription.personalAccessToken) {
@@ -121,7 +123,7 @@ export class Poller {
     return `${url.protocol}//${
       useAuth ? auth.get(this.getKey(subscription)) ?? "" : ""
     }${url.host}/repos/${subscription.username}/${
-      subscription.repoName
+      subscription.repositoryName
     }/branches/${subscription.branchName}`;
   }
   private getAuthUrl(subscription: PollSubscription) {
@@ -131,7 +133,7 @@ export class Poller {
     return this.getUrl(subscription, false);
   }
   private getAxiosRequestConfig(
-    subscription: Subscription
+    subscription: PollSubscription
   ): AxiosRequestConfig | undefined {
     if (subscription.extraHeaders) {
       return {
@@ -171,7 +173,7 @@ export class Poller {
         logger.fatal(`Error: Invalid credentials when polling github API`);
       } else if (e.response?.status === 404) {
         logger.error(
-          `Error: Branch/repo ${subscription.username}/${subscription.repoName}/${subscription.branchName} not found!`
+          `Error: Branch/repo ${subscription.username}/${subscription.repositoryName}/${subscription.branchName} not found!`
         );
       } else if (e.code === "ECONNREFUSED") {
         logger.error(`Error: ${e.message}`);

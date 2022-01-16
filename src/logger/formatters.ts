@@ -7,7 +7,7 @@ export type LogFormatter = (
   date: Date
 ) => string;
 
-const formatJson: LogFormatter = (
+export const formatJson: LogFormatter = (
   message: any,
   level: LogLevel,
   source: string,
@@ -17,11 +17,11 @@ const formatJson: LogFormatter = (
     timestamp: date.toISOString(),
     level,
     source,
-    message: JSON.stringify(message),
+    message: typeof message === "string" ? message : JSON.stringify(message),
   });
 };
 
-const formatText: LogFormatter = (
+export const formatText: LogFormatter = (
   message: any,
   level: LogLevel,
   source: string,
@@ -29,7 +29,7 @@ const formatText: LogFormatter = (
 ): string => {
   return `[${LogLevel[
     level
-  ].toUpperCase()}] ${date.toISOString()} [${source}] ${
+  ].toUpperCase()}]\t${date.toISOString()}\t[${source}]\t${
     typeof message === "string" ? message : JSON.stringify(message)
   }`;
 };

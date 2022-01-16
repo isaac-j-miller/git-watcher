@@ -6,6 +6,7 @@ export function countInstances(str: string, item: string): number {
     if (startIndex > -1) {
       const newIndex = startIndex + item.length;
       newStr = newStr.slice(newIndex);
+      count++;
     } else {
       return count;
     }
@@ -13,61 +14,104 @@ export function countInstances(str: string, item: string): number {
   return count;
 }
 
-function tryParse(str: string): object | Array<any> | string[] {
+function parseJsonIfJson(str: string): undefined | object {
   try {
     return JSON.parse(str);
   } catch (e) {
-    return str.split("\n");
+    return undefined;
   }
+}
+
+type MaybeJsonResponse = {
+  jsonDetected: boolean;
+} & (
+  | {
+      jsonDetected: true;
+      startIndex: number;
+      endIndex: number;
+    }
+  | {
+      jsonDetected: false;
+    }
+);
+export function detectJson(str: string): MaybeJsonResponse {
+  const leftBracketCount = countInstances(str, "{");
+  const rightBracketCount = countInstances(str, "}");
+  const leftBraceCount = countInstances(str, "[");
+  const rightBraceCount = countInstances(str, "]");
+  const hasBalancedBrackets =
+    leftBracketCount &&
+    rightBracketCount &&
+    leftBracketCount === rightBracketCount;
+  const hasBalancedBraces =
+    leftBraceCount && rightBraceCount && leftBraceCount === rightBraceCount;
+  const unbalanced =
+    leftBracketCount !== rightBracketCount ||
+    leftBraceCount !== rightBraceCount;
+  if (unbalanced || (!hasBalancedBraces && !hasBalancedBrackets)) {
+    return { jsonDetected: false };
+  }
+  let startIndex = -1;
+  let endIndex = -1;
+
+  if (hasBalancedBrackets) {
+    startIndex = str.indexOf("{");
+    endIndex = str.lastIndexOf("}");
+  }
+  if (hasBalancedBraces) {
+    const braceStartIndex = str.indexOf("[");
+    if (startIndex === -1 || braceStartIndex < startIndex) {
+      const braceEndIndex = str.lastIndexOf("]");
+      if (endIndex === -1 || braceEndIndex > endIndex) {
+        startIndex = braceStartIndex;
+        endIndex = braceEndIndex;
+      }
+    }
+  }
+  return {
+    jsonDetected: true,
+    startIndex,
+    endIndex,
+  };
 }
 
 export function processLogs(rawLog: string): any[] {
   const outputLines: any[] = [];
-
   const lines = rawLog.split("\n");
-  let currentString = "";
-  let leftBracketCount = 0;
-  let rightBracketCount = 0;
-  let leftBraceCount = 0;
-  let rightBraceCount = 0;
-  for (const line of lines) {
-    if (line.match(/\{|\}|\[|\]/g)) {
-      const leftBrackets = countInstances(line, "{");
-      const rightBrackets = countInstances(line, "}");
-      const leftBraces = countInstances(line, "[");
-      const rightBraces = countInstances(line, "]");
-      const bracketSum =
-        leftBracketCount + leftBrackets - (rightBracketCount + rightBrackets);
-      const braceSum =
-        leftBraceCount + leftBraces - (rightBraceCount + rightBraces);
-      if (bracketSum || braceSum) {
-        currentString += line + "\n";
-      } else {
-        if (currentString) {
-          const output = tryParse(currentString);
-          if (Array.isArray(output) && typeof output[0] === "string") {
-            outputLines.push(...output);
-          } else {
-            outputLines.push(output);
-          }
-          currentString = "";
-        } else if (leftBrackets || leftBraces || rightBrackets || rightBraces) {
-          const output = tryParse(line);
-          if (Array.isArray(output) && typeof output[0] === "string") {
-            outputLines.push(...output);
-          } else {
-            outputLines.push(output);
-          }
-        } else {
-          outputLines.push(line);
+  let currentGroup = "";
+  for (let i = 0; i < lines.length; i++) {
+    currentGroup += lines[i] + "\n";
+    // TODO: maybe also try to detect XML/table/etc formats?
+    const hasJson = detectJson(currentGroup);
+    if (hasJson.jsonDetected) {
+      const { startIndex, endIndex } = hasJson;
+      const jsonPart = currentGroup.slice(startIndex, endIndex + 1);
+      const parsed = parseJsonIfJson(jsonPart);
+      const currentParts: any[] = [];
+      if (parsed) {
+        if (startIndex !== 0) {
+          const firstPart = currentGroup.slice(0, startIndex);
+          currentParts.push(firstPart);
         }
+        currentParts.push(parsed);
+        if (endIndex !== currentGroup.length - 1) {
+          const lastPart = currentGroup.slice(endIndex + 1);
+          currentParts.push(lastPart);
+        }
+        currentGroup = "";
+        outputLines.push(...currentParts);
+      } else if (i === lines.length - 1) {
+        outputLines.push(...currentGroup.split("\n"));
       }
-    } else {
-      outputLines.push(line);
+    } else if (i === lines.length - 1) {
+      outputLines.push(...currentGroup.split("\n"));
     }
   }
-  if (currentString) {
-    outputLines.push(...currentString.split("\n"));
-  }
-  return outputLines;
+  const filteredOutputLines = outputLines.filter((line) => {
+    if (typeof line !== "string") {
+      return true;
+    }
+    return !!line.trim();
+  });
+  return filteredOutputLines;
 }

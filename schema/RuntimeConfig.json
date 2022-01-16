@@ -1,0 +1,228 @@
+{
+  "$ref": "#/definitions/RuntimeConfig",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "LogFormat": {
+      "enum": ["json", "text"],
+      "type": "string"
+    },
+    "LogLevel": {
+      "enum": [0, 1, 2, 3, 4, 5],
+      "type": "number"
+    },
+    "LoggingConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "console": {
+          "additionalProperties": false,
+          "properties": {
+            "format": {
+              "$ref": "#/definitions/LogFormat"
+            },
+            "level": {
+              "$ref": "#/definitions/LogLevel"
+            }
+          },
+          "type": "object"
+        },
+        "file": {
+          "additionalProperties": false,
+          "properties": {
+            "format": {
+              "$ref": "#/definitions/LogFormat"
+            },
+            "level": {
+              "$ref": "#/definitions/LogLevel"
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": ["path"],
+          "type": "object"
+        },
+        "format": {
+          "$ref": "#/definitions/LogFormat"
+        },
+        "level": {
+          "$ref": "#/definitions/LogLevel"
+        }
+      },
+      "type": "object"
+    },
+    "OnCommitAction": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actionType": {
+              "$ref": "#/definitions/OnCommitActionType"
+            },
+            "cwd": {
+              "type": "string"
+            },
+            "inlineScript": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": ["actionType", "inlineScript"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actionType": {
+              "$ref": "#/definitions/OnCommitActionType"
+            },
+            "cwd": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "scriptArgs": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "scriptFilePath": {
+              "type": "string"
+            }
+          },
+          "required": ["actionType", "scriptFilePath"],
+          "type": "object"
+        }
+      ]
+    },
+    "OnCommitActionType": {
+      "enum": ["inline-script", "file-script"],
+      "type": "string"
+    },
+    "RuntimeConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "logging": {
+          "$ref": "#/definitions/LoggingConfig"
+        },
+        "subscriptions": {
+          "items": {
+            "$ref": "#/definitions/Subscription"
+          },
+          "type": "array"
+        },
+        "webhookPort": {
+          "type": "number"
+        }
+      },
+      "required": ["subscriptions"],
+      "type": "object"
+    },
+    "Subscription": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "branchName": {
+              "type": "string"
+            },
+            "extraHeaders": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "mode": {
+              "$ref": "#/definitions/SubscriptionMode"
+            },
+            "onNewCommit": {
+              "items": {
+                "$ref": "#/definitions/OnCommitAction"
+              },
+              "type": "array"
+            },
+            "overrideEndpoint": {
+              "type": "string"
+            },
+            "personalAccessToken": {
+              "type": "string"
+            },
+            "personalAccessTokenEnvVar": {
+              "type": "string"
+            },
+            "pollingIntervalSeconds": {
+              "type": "number"
+            },
+            "repositoryName": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "branchName",
+            "mode",
+            "onNewCommit",
+            "pollingIntervalSeconds",
+            "repositoryName",
+            "username"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "actions": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "branchName": {
+              "type": "string"
+            },
+            "mode": {
+              "$ref": "#/definitions/SubscriptionMode"
+            },
+            "onNewCommit": {
+              "items": {
+                "$ref": "#/definitions/OnCommitAction"
+              },
+              "type": "array"
+            },
+            "path": {
+              "type": "string"
+            },
+            "repositoryName": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "actions",
+            "branchName",
+            "mode",
+            "onNewCommit",
+            "path",
+            "repositoryName",
+            "username"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "SubscriptionMode": {
+      "enum": ["polling", "webhook"],
+      "type": "string"
+    }
+  }
+}

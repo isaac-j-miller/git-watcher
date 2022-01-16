@@ -7,15 +7,17 @@ import { LogFormat, Logger, LogLevel } from "./types";
 const appendFile = promisify(fs.appendFile);
 
 export class FileLogger extends ConsoleLogger implements Logger {
-  private formatter: LogFormatter;
+  private logFormatter: LogFormatter;
   constructor(
     private logFilePath: string,
     private logFormat: LogFormat,
     logLevel: LogLevel,
+    private fileLogLevel: LogLevel,
+    private fileLogFormat: LogFormat,
     source: string
   ) {
-    super(logLevel, source);
-    this.formatter = getFormatter(logFormat);
+    super(logLevel, logFormat, source);
+    this.logFormatter = getFormatter(fileLogFormat);
     if (!fs.existsSync(this.logFilePath)) {
       fs.writeFileSync(this.logFilePath, "", { encoding: "utf8" });
     }
@@ -24,13 +26,14 @@ export class FileLogger extends ConsoleLogger implements Logger {
     await appendFile(this.logFilePath, lines.join("\n") + "\n");
   }
   protected override log(level: LogLevel, messages: any[]): boolean {
-    const shouldLog = super.log(level, messages);
-    if (!shouldLog) {
+    super.log(level, messages);
+    const shouldLogToFile = level > this.fileLogLevel;
+    if (!shouldLogToFile) {
       return false;
     }
     const date = new Date();
     const formatted = messages.map((msg) =>
-      this.formatter(msg, level, this.source, date)
+      this.logFormatter(msg, level, this.source, date)
     );
     this.writeToFile(formatted).catch((err) => {
       // don't try to write the error about not being able to write to the file, to the file
@@ -43,6 +46,8 @@ export class FileLogger extends ConsoleLogger implements Logger {
       this.logFilePath,
       this.logFormat,
       this.logLevel,
+      this.fileLogLevel,
+      this.fileLogFormat,
       `${this.source}::${source}`
     );
   }

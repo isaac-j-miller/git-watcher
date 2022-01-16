@@ -13,7 +13,7 @@ const app = express();
 
 const commits = new Map<string, string>();
 
-const logger = new ConsoleLogger(LogLevel.DEBUG, "github-mock");
+const logger = new ConsoleLogger(LogLevel.DEBUG, "text", "github-mock");
 
 app.put(
   "/repos/:username/:reponame/branches/:branchname/:commitId",
@@ -26,7 +26,7 @@ app.put(
     for (const subscription of subscriptions) {
       if (
         subscription.username === username &&
-        subscription.repoName === reponame &&
+        subscription.repositoryName === reponame &&
         subscription.branchName === branchname &&
         subscription.mode === "webhook"
       ) {

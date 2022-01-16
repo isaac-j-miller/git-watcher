@@ -1,25 +1,29 @@
 import argparse from "argparse";
 import path from "path";
 import { Configuration } from "./config";
-import { Poller } from "./poller";
+import { PollerListener } from "./poller";
 
 type CliArgs = {
   configFile: string;
+  verbose: boolean;
 };
 
 const parser = new argparse.ArgumentParser();
 
 parser.add_argument("configFile");
 
+parser.add_argument("--verbose", {
+  dest: "verbose",
+  action: "store_true",
+});
+
 async function main() {
-  // TODO: fix this
-  const indexOf = process.argv.findIndex((arg) => arg.endsWith("index.ts"));
+  const indexOf = process.argv.findIndex((arg) => arg.endsWith(__filename));
   const unparsedArgs = process.argv.slice(indexOf + 1);
-  console.log(indexOf, unparsedArgs);
   const args: CliArgs = parser.parse_args(unparsedArgs);
-  const { configFile } = args;
-  const config = Configuration.getInstance(path.resolve(configFile));
-  const poller = new Poller(config.runtimeConfig);
+  const { configFile, verbose } = args;
+  const config = Configuration.getInstance(path.resolve(configFile), verbose);
+  const poller = new PollerListener(config.runtimeConfig);
   await poller.init();
 }
 

@@ -4,11 +4,23 @@ import { FileLogger } from "./file-logger";
 import { Logger, LogLevel } from "./types";
 
 export function getLogger(config: RuntimeConfig, source: string): Logger {
-  const { logFilePath, logLevel, logFormat } = config;
-  const level = logLevel ?? LogLevel.DEBUG;
-  if (logFilePath) {
-    return new FileLogger(logFilePath, logFormat ?? "json", level, source);
+  const { logging } = config;
+  const { level, format, file, console } = logging;
+  const defaultLevel = level ?? LogLevel.INFO;
+  if (file?.path) {
+    return new FileLogger(
+      file.path,
+      console.format ?? format ?? "json",
+      console.level ?? defaultLevel,
+      file.level ?? defaultLevel,
+      file.format ?? "json",
+      source
+    );
   } else {
-    return new ConsoleLogger(level, source);
+    return new ConsoleLogger(
+      console.level ?? defaultLevel,
+      console.format ?? format ?? "text",
+      source
+    );
   }
 }

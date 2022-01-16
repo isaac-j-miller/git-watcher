@@ -1,8 +1,16 @@
 import chalk from "chalk";
-import { Logger, LogLevel } from "./types";
+import { getFormatter, LogFormatter } from "./formatters";
+import { LogFormat, Logger, LogLevel } from "./types";
 
 export class ConsoleLogger implements Logger {
-  constructor(protected logLevel: LogLevel, protected source: string) {}
+  private formatter: LogFormatter;
+  constructor(
+    protected logLevel: LogLevel,
+    protected format: LogFormat,
+    protected source: string
+  ) {
+    this.formatter = getFormatter(format);
+  }
   private getColor(level: LogLevel): chalk.Chalk {
     switch (level) {
       case LogLevel.VERBOSE:
@@ -27,18 +35,13 @@ export class ConsoleLogger implements Logger {
     date: Date,
     message: any
   ): string {
-    const prefix = `${color(
-      `[${LogLevel[level].toUpperCase()}] ${date.toISOString()} [${
-        this.source
-      }] `
-    )}`;
-    if (Array.isArray(message)) {
-      return prefix + `[${message.join(", ")}]`;
-    } else if (typeof message === "object") {
-      return prefix + JSON.stringify(message, null, 2);
-    } else {
-      return prefix + String(message);
+    const formatted = this.formatter(message, level, this.source, date);
+    if (this.format === "text") {
+      const colorString = `[${LogLevel[level].toUpperCase()}]`;
+      const after = formatted.slice(colorString.length);
+      return color(colorString) + after;
     }
+    return formatted;
   }
   protected log(level: LogLevel, messages: any[]): boolean {
     if (level < this.logLevel) {
@@ -70,7 +73,11 @@ export class ConsoleLogger implements Logger {
     return true;
   }
   createChild(source: string): Logger {
-    return new ConsoleLogger(this.logLevel, `${this.source}::${source}`);
+    return new ConsoleLogger(
+      this.logLevel,
+      this.format,
+      `${this.source}::${source}`
+    );
   }
   verbose(...messages: any[]) {
     this.log(LogLevel.VERBOSE, messages);
