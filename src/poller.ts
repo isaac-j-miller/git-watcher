@@ -196,7 +196,9 @@ export class PollerListener {
         res.status(200);
         res.send({ success: true });
       } catch (error) {
-        logger.error(`Error while receiving webhook request: ${error}`);
+        logger.error(
+          `Error while receiving webhook request: ${error.name} ${error.message}`
+        );
         res.status(500);
         res.send(error);
       }
