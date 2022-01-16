@@ -1,12 +1,12 @@
 import { LogFormat, LogLevel } from "../logger/types";
 
-export type OnCommitActionType = "inline-script" | "file-script";
+export type EventActionType = "inline-script" | "file-script";
 
 export type SubscriptionMode = "polling" | "webhook";
 
-export type OnCommitAction = {
+export type OnEventAction = {
   cwd?: string;
-  actionType: OnCommitActionType;
+  actionType: EventActionType;
   name?: string;
 } & (
   | {
@@ -22,7 +22,7 @@ export type OnCommitAction = {
 
 export type Subscription = {
   mode: SubscriptionMode;
-  onNewCommit: OnCommitAction[];
+  onEvent: OnEventAction[];
   username: string;
   repositoryName: string;
   branchName: string;

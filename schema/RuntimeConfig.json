@@ -2,12 +2,29 @@
   "$ref": "#/definitions/RuntimeConfig",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
+    "EventActionType": {
+      "enum": [
+        "inline-script",
+        "file-script"
+      ],
+      "type": "string"
+    },
     "LogFormat": {
-      "enum": ["json", "text"],
+      "enum": [
+        "json",
+        "text"
+      ],
       "type": "string"
     },
     "LogLevel": {
-      "enum": [0, 1, 2, 3, 4, 5],
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
       "type": "number"
     },
     "LoggingConfig": {
@@ -38,7 +55,9 @@
               "type": "string"
             }
           },
-          "required": ["path"],
+          "required": [
+            "path"
+          ],
           "type": "object"
         },
         "format": {
@@ -50,13 +69,13 @@
       },
       "type": "object"
     },
-    "OnCommitAction": {
+    "OnEventAction": {
       "anyOf": [
         {
           "additionalProperties": false,
           "properties": {
             "actionType": {
-              "$ref": "#/definitions/OnCommitActionType"
+              "$ref": "#/definitions/EventActionType"
             },
             "cwd": {
               "type": "string"
@@ -68,14 +87,17 @@
               "type": "string"
             }
           },
-          "required": ["actionType", "inlineScript"],
+          "required": [
+            "actionType",
+            "inlineScript"
+          ],
           "type": "object"
         },
         {
           "additionalProperties": false,
           "properties": {
             "actionType": {
-              "$ref": "#/definitions/OnCommitActionType"
+              "$ref": "#/definitions/EventActionType"
             },
             "cwd": {
               "type": "string"
@@ -93,14 +115,13 @@
               "type": "string"
             }
           },
-          "required": ["actionType", "scriptFilePath"],
+          "required": [
+            "actionType",
+            "scriptFilePath"
+          ],
           "type": "object"
         }
       ]
-    },
-    "OnCommitActionType": {
-      "enum": ["inline-script", "file-script"],
-      "type": "string"
     },
     "RuntimeConfig": {
       "additionalProperties": false,
@@ -121,7 +142,9 @@
           "type": "number"
         }
       },
-      "required": ["subscriptions"],
+      "required": [
+        "subscriptions"
+      ],
       "type": "object"
     },
     "Subscription": {
@@ -141,9 +164,9 @@
             "mode": {
               "$ref": "#/definitions/SubscriptionMode"
             },
-            "onNewCommit": {
+            "onEvent": {
               "items": {
-                "$ref": "#/definitions/OnCommitAction"
+                "$ref": "#/definitions/OnEventAction"
               },
               "type": "array"
             },
@@ -169,7 +192,7 @@
           "required": [
             "branchName",
             "mode",
-            "onNewCommit",
+            "onEvent",
             "pollingIntervalSeconds",
             "repositoryName",
             "username"
@@ -191,9 +214,9 @@
             "mode": {
               "$ref": "#/definitions/SubscriptionMode"
             },
-            "onNewCommit": {
+            "onEvent": {
               "items": {
-                "$ref": "#/definitions/OnCommitAction"
+                "$ref": "#/definitions/OnEventAction"
               },
               "type": "array"
             },
@@ -211,7 +234,7 @@
             "actions",
             "branchName",
             "mode",
-            "onNewCommit",
+            "onEvent",
             "path",
             "repositoryName",
             "username"
@@ -221,7 +244,10 @@
       ]
     },
     "SubscriptionMode": {
-      "enum": ["polling", "webhook"],
+      "enum": [
+        "polling",
+        "webhook"
+      ],
       "type": "string"
     }
   }

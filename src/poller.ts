@@ -3,7 +3,7 @@ import { promisify } from "util";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import express, { Request, Response, Express } from "express";
 import {
-  OnCommitAction,
+  OnEventAction,
   PollSubscription,
   RuntimeConfig,
   Subscription,
@@ -63,7 +63,7 @@ export class PollerListener {
     }
     return null;
   }
-  private getActionName(action: OnCommitAction) {
+  private getActionName(action: OnEventAction) {
     if (action.name) {
       return action.name;
     } else if (action.actionType === "inline-script") {
@@ -73,7 +73,7 @@ export class PollerListener {
     }
   }
   private async takeAction(
-    action: OnCommitAction
+    action: OnEventAction
   ): Promise<{ stdout: string; stderr: string } | undefined> {
     const { logger } = this;
     logger.info(`Running ${this.getActionName(action)}...`);
@@ -104,7 +104,7 @@ export class PollerListener {
   }
   private async takeActions(subscription: Subscription) {
     const { actionLogger } = this;
-    for await (const action of subscription.onNewCommit) {
+    for await (const action of subscription.onEvent) {
       const resp = await this.takeAction(action);
       if (resp) {
         const { stdout, stderr } = resp;

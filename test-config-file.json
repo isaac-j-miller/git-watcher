@@ -8,7 +8,7 @@
       "overrideEndpoint": "http://localhost:3000",
       "mode": "polling",
       "pollingIntervalSeconds": 10,
-      "onNewCommit": [
+      "onEvent": [
         {
           "actionType": "inline-script",
           "inlineScript": "echo 'Horray! a new commit!'",
@@ -30,7 +30,7 @@
       "mode": "webhook",
       "path": "/webhooks/repos/another-repo/main",
       "actions": ["push"],
-      "onNewCommit": [
+      "onEvent": [
         {
           "actionType": "inline-script",
           "inlineScript": "echo 'Horray! a new commit!'",

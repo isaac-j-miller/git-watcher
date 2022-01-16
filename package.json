@@ -9,6 +9,7 @@
   "scripts": {
     "test": "jest",
     "test-inspect": "node --inspect ./node_modules/jest/bin/jest.js --watch",
+    "check-ts": "tsc --noEmit",
     "start-dev": "nodemon --watch ./src src/index.ts ./test-config-file.json",
     "start-inspect": "nodemon --exec 'node --inspect -r ts-node/register' --watch ./src src/index.ts ./test-config-file.json",
     "start-mock": "ts-node ./src/mocks/index.ts",
@@ -17,7 +18,8 @@
     "lint": "eslint . --ext .ts",
     "build": "webpack build && npm run generate-schema && cp -a ./schema ./dist && cp ./package.json ./dist/package.json",
     "generate-schema": "ts-json-schema-generator --path ./src/config/types.ts --type RuntimeConfig --out schema/RuntimeConfig.json",
-    "check": "npm test && npm run prettier-check && npm run lint"
+    "check-generated-schema": "ts-json-schema-generator --path ./src/config/types.ts --type RuntimeConfig --out .tmp/RuntimeConfig.json && diff -q .tmp/RuntimeConfig.json schema/RuntimeConfig.json",
+    "check": "npm run check-ts && npm test && npm run prettier-check && npm run lint && npm run check-generated-schema"
   },
   "repository": {
     "type": "git",

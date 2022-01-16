@@ -34,7 +34,7 @@ A `Subscription` object specifies how to watch for new commits and what to do in
 There are a few options common to both subscription types:
 
 - `mode`: the subscription mode (`polling|webhook`)
-- `onNewCommit`: actions to take when a new commit is detected (more details in the `OnNewCommitAction` section)
+- `onEvent`: actions to take when a new commit is detected (more details in the `OnEventAction` section)
 - `username`: the repository owner's username
 - `repositoryName`: the name of the repository
 - `branchName`: the name of the branch to monitor
@@ -43,7 +43,7 @@ There are two modes:
 
 ### Polling
 
-The simplest (and least efficient, but most straightforward) mode is Polling Mode. This is intended to be used in situations when it is not possible to set up a public IP for a webhook to attach to. This mode sends HTTP requests to GitHub's API at the interval specified in `Subscription.pollingIntervalSeconds`, stores the commit SHA for the specified branch, and if the received SHA does not match the stored SHA, it runs the actions specified in `Subscription.onNewCommit`. There are a few configurable options for Polling subscriptions:
+The simplest (and least efficient, but most straightforward) mode is Polling Mode. This is intended to be used in situations when it is not possible to set up a public IP for a webhook to attach to. This mode sends HTTP requests to GitHub's API at the interval specified in `Subscription.pollingIntervalSeconds`, stores the commit SHA for the specified branch, and if the received SHA does not match the stored SHA, it runs the actions specified in `Subscription.onEvent`. There are a few configurable options for Polling subscriptions:
 
 - `pollingIntervalSeconds`: how often (in seconds) to poll the GitHub API for a new commit
 - `overrideEndpoint`: Optional. Only used for testing. Can be used to specify an alternative endpoint to poll.
@@ -56,13 +56,13 @@ The simplest (and least efficient, but most straightforward) mode is Polling Mod
 You may also configure a webhook listener by using `webhook` mode. This will cause the app to stand up an express server which listens on a configured port and path for webhook requests. You must first set up the webhook via GitHub (IMPORTANT: you must select application/json as the content type) and ensure that your server has a public IP. There are a few configurable options for webhook subscriptions:
 
 - `path`: webhook request path. It can be whatever you want, as long as it is a valid URL path. It must match the path configured when setting up the webhook in GitHub. Example: `/repos/repo-name/webhook`.
-- `actions`: List of actions which trigger running `onNewCommit`. To enable actions for pushes, set `actions` to `["push"]`.
+- `actions`: List of actions which trigger running the commands specified in `onEvent`. To enable actions for pushes, set `actions` to `["push"]`.
 
 The original intention for this project was to run actions on pushes, but by specifying the `actions` field, you can configure it to run scripts for other actions as well.
 
 ### OnCommitAction
 
-This is the `Subscription.onNewCommit` field. There are two types of actions: `inline-script` and `file-script`. The following options are common to both of them:
+This is the `Subscription.onEvent` field. There are two types of actions: `inline-script` and `file-script`. The following options are common to both of them:
 
 - `cwd`: Optional. directory to run the command in
 - `name`: Optional. name of the action
@@ -146,7 +146,7 @@ Template 1 (polling subscription):
       "branchName": "main",
       "mode": "polling",
       "pollingIntervalSeconds": 10,
-      "onNewCommit": [
+      "onEvent": [
           {
           "cwd": "~/your-project-dir",
           "actionType": "file-script",
@@ -190,7 +190,7 @@ Template 2 (webhook subscription):
       "branchName": "main",
       "path": "/webhooks/repository-name",
       "mode": "webhook",
-      "onNewCommit": [
+      "onEvent": [
           {
           "cwd": "~/your-project-dir",
           "actionType": "file-script",
