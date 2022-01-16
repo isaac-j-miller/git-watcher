@@ -1,23 +1,51 @@
 {
-  "username": "isaac-j-miller",
-  "repoName": "mirror-v2",
-  "branchName": "main",
-  "overrideEndpoint": "http://localhost:3000",
-  "pollingIntervalSeconds": 10,
-  "onNewCommit": [
+  "subscriptions": [
     {
-      "actionType": "inline-script",
-      "inlineScript": "echo 'Horray! a new commit!'",
-      "name": "test-inline-script"
+      "username": "isaac-j-miller",
+      "repoName": "mirror-v2",
+      "branchName": "main",
+      "overrideEndpoint": "http://localhost:3000",
+      "mode": "polling",
+      "pollingIntervalSeconds": 10,
+      "onNewCommit": [
+        {
+          "actionType": "inline-script",
+          "inlineScript": "echo 'Horray! a new commit!'",
+          "name": "test-inline-script"
+        },
+        {
+          "cwd": ".",
+          "actionType": "file-script",
+          "scriptFilePath": "./test-action",
+          "scriptArgs": ["--arg1", "arg2"],
+          "name": "test-file-script"
+        }
+      ]
     },
     {
-      "cwd": ".",
-      "actionType": "file-script",
-      "scriptFilePath": "./test-action",
-      "scriptArgs": ["--arg1", "arg2"],
-      "name": "test-file-script"
+      "username": "isaac-j-miller",
+      "repoName": "another-repo",
+      "branchName": "main",
+      "mode": "webhook",
+      "path": "/webhooks/repos/another-repo/main",
+      "actions": ["push"],
+      "onNewCommit": [
+        {
+          "actionType": "inline-script",
+          "inlineScript": "echo 'Horray! a new commit!'",
+          "name": "test-inline-script"
+        },
+        {
+          "cwd": ".",
+          "actionType": "file-script",
+          "scriptFilePath": "./test-action",
+          "scriptArgs": ["--arg1", "arg2"],
+          "name": "test-file-script"
+        }
+      ]
     }
   ],
+  "webhookPort": 8000,
   "logFormat": "json",
   "logFilePath": ".logfile",
   "logLevel": 0

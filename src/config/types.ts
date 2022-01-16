@@ -2,6 +2,8 @@ import { LogFormat, LogLevel } from "../logger/types";
 
 type OnCommitActionType = "inline-script" | "file-script";
 
+type SubscriptionMode = "polling" | "webhook";
+
 export type OnCommitAction = {
   cwd?: string;
   actionType: OnCommitActionType;
@@ -18,17 +20,38 @@ export type OnCommitAction = {
     }
 );
 
-export type RuntimeConfig = {
+export type Subscription = {
+  mode: SubscriptionMode;
+  onNewCommit: OnCommitAction[];
   username: string;
   repoName: string;
   branchName: string;
-  pollingIntervalSeconds: number;
-  onNewCommit: OnCommitAction[];
   extraHeaders?: Record<string, string>;
   personalAccessTokenEnvVar?: string;
   personalAccessToken?: string;
-  overrideEndpoint?: string;
+} & (
+  | {
+      mode: "polling";
+      pollingIntervalSeconds: number;
+      overrideEndpoint?: string;
+    }
+  | {
+      mode: "webhook";
+      path: string;
+      actions: string[];
+    }
+);
+export type PollSubscription = Subscription & {
+  mode: "polling";
+};
+export type WebhookSubscription = Subscription & {
+  mode: "webhook";
+};
+
+export type RuntimeConfig = {
+  subscriptions: Subscription[];
   logFilePath?: string;
   logFormat?: LogFormat;
   logLevel?: LogLevel;
+  webhookPort?: number;
 };

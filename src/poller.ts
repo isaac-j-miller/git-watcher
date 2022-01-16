@@ -1,7 +1,14 @@
 import { exec, ExecException } from "child_process";
 import { promisify } from "util";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
-import { OnCommitAction, RuntimeConfig } from "./config/types";
+import express, { Request, Response, Express } from "express";
+import {
+  OnCommitAction,
+  PollSubscription,
+  RuntimeConfig,
+  Subscription,
+  WebhookSubscription,
+} from "./config/types";
 import { Logger } from "./logger/types";
 import { getLogger } from "./logger";
 import { processLogs } from "./logger/log-processor";
@@ -14,24 +21,43 @@ type BranchResponse = {
   };
 };
 
+type WebhookRequest = {
+  action: string;
+  sender: string;
+  repository: {
+    // TODO: add the actual spec from https://docs.github.com/en/rest/reference/repos#get-a-repository if we ever need it
+  };
+};
+
 export class Poller {
-  private interval: NodeJS.Timer;
-  private auth: string;
-  private currentSha: string;
+  private intervals: NodeJS.Timer[];
+  private auth: Map<string, string>;
+  private currentShaMap: Map<string, string>;
   private logger: Logger;
   private actionLogger: Logger;
+  private app?: Express;
   constructor(private config: RuntimeConfig) {
-    const pat = this.getPat();
-    this.auth = pat ? `${pat}@` : "";
+    this.auth = new Map<string, string>();
+    this.currentShaMap = new Map<string, string>();
+    this.intervals = [];
+    config.subscriptions.forEach((subscription) => {
+      if (subscription.mode === "polling") {
+        const pat = this.getPat(subscription);
+        const auth = pat ? `${pat}@` : "";
+        this.auth.set(this.getKey(subscription), auth);
+      }
+    });
     this.logger = getLogger(this.config, "poller");
     this.actionLogger = this.logger.createChild("action");
   }
-  private getPat(): string | null {
-    const { config } = this;
-    if (config.personalAccessToken) {
-      return config.personalAccessToken;
-    } else if (config.personalAccessTokenEnvVar) {
-      return process.env[config.personalAccessTokenEnvVar] ?? null;
+  private getKey(subscription: Subscription): string {
+    return `${subscription.username}:${subscription.repoName}:${subscription.branchName}`;
+  }
+  private getPat(subscription: PollSubscription): string | null {
+    if (subscription.personalAccessToken) {
+      return subscription.personalAccessToken;
+    } else if (subscription.personalAccessTokenEnvVar) {
+      return process.env[subscription.personalAccessTokenEnvVar] ?? null;
     }
     return null;
   }
@@ -74,9 +100,9 @@ export class Poller {
       return undefined;
     }
   }
-  private async takeActions() {
+  private async takeActions(subscription: Subscription) {
     const { actionLogger } = this;
-    for await (const action of this.config.onNewCommit) {
+    for await (const action of subscription.onNewCommit) {
       const resp = await this.takeAction(action);
       if (resp) {
         const { stdout, stderr } = resp;
@@ -87,41 +113,53 @@ export class Poller {
       }
     }
   }
-  private getUrl(useAuth: boolean): string {
-    const { config, auth } = this;
-    const url = new URL(config.overrideEndpoint ?? "https://api.github.com");
-    return `${url.protocol}//${useAuth ? auth : ""}${url.host}/repos/${
-      config.username
-    }/${config.repoName}/branches/${config.branchName}`;
+  private getUrl(subscription: PollSubscription, useAuth: boolean): string {
+    const { auth } = this;
+    const url = new URL(
+      subscription.overrideEndpoint ?? "https://api.github.com"
+    );
+    return `${url.protocol}//${
+      useAuth ? auth.get(this.getKey(subscription)) ?? "" : ""
+    }${url.host}/repos/${subscription.username}/${
+      subscription.repoName
+    }/branches/${subscription.branchName}`;
   }
-  private getAuthUrl() {
-    return this.getUrl(true);
+  private getAuthUrl(subscription: PollSubscription) {
+    return this.getUrl(subscription, true);
   }
-  private getSanitizedUrl(): string {
-    return this.getUrl(false);
+  private getSanitizedUrl(subscription: PollSubscription): string {
+    return this.getUrl(subscription, false);
   }
-  private getAxiosRequestConfig(): AxiosRequestConfig | undefined {
-    const { config } = this;
-    if (config.extraHeaders) {
+  private getAxiosRequestConfig(
+    subscription: Subscription
+  ): AxiosRequestConfig | undefined {
+    if (subscription.extraHeaders) {
       return {
-        headers: config.extraHeaders,
+        headers: subscription.extraHeaders,
       };
     }
   }
-  private poll = async () => {
-    const { logger, config } = this;
+  private poll = async (subscription: PollSubscription) => {
+    const { logger } = this;
     try {
-      logger.verbose(`Polling ${this.getSanitizedUrl()}...`);
+      logger.verbose(`Polling ${this.getSanitizedUrl(subscription)}...`);
       const resp = await axios.get<BranchResponse>(
-        this.getAuthUrl(),
-        this.getAxiosRequestConfig()
+        this.getAuthUrl(subscription),
+        this.getAxiosRequestConfig(subscription)
       );
       const { commit } = resp.data;
       const sha = commit.sha;
-      if (sha !== this.currentSha) {
-        logger.info(`New commit SHA detected: ${this.currentSha} -> ${sha}`);
-        this.currentSha = sha;
-        await this.takeActions();
+      const key = this.getKey(subscription);
+      const currentSha = this.currentShaMap.get(key);
+      if (sha !== currentSha) {
+        this.currentShaMap.set(key, sha);
+        // TODO: store SHAs in file
+        if (currentSha) {
+          logger.info(`New commit SHA detected: ${currentSha} -> ${sha}`);
+          await this.takeActions(subscription);
+        } else {
+          logger.debug(`Initial SHA detected: ${sha}`);
+        }
       }
     } catch (err) {
       const e = err as AxiosError;
@@ -133,7 +171,7 @@ export class Poller {
         logger.fatal(`Error: Invalid credentials when polling github API`);
       } else if (e.response?.status === 404) {
         logger.error(
-          `Error: Branch/repo ${config.username}/${config.repoName}/${config.branchName} not found!`
+          `Error: Branch/repo ${subscription.username}/${subscription.repoName}/${subscription.branchName} not found!`
         );
       } else if (e.code === "ECONNREFUSED") {
         logger.error(`Error: ${e.message}`);
@@ -142,21 +180,75 @@ export class Poller {
       }
     }
   };
-
+  private getWebhookRequestHandler = (subscription: WebhookSubscription) => {
+    const handler = async (
+      req: Request<unknown, unknown, WebhookRequest>,
+      res: Response
+    ) => {
+      const { logger } = this;
+      logger.info(`Received webhook request: ${req.url}`);
+      try {
+        if (subscription.actions.includes(req.body.action)) {
+          await this.takeActions(subscription);
+        }
+        res.status(200);
+        res.send({ success: true });
+      } catch (error) {
+        logger.error(`Error while receiving webhook request: ${error}`);
+        res.status(500);
+        res.send(error);
+      }
+    };
+    return handler;
+  };
   async init() {
     const { config, logger } = this;
-    logger.info(
-      `Starting polling ${this.getSanitizedUrl()} every ${
-        config.pollingIntervalSeconds
-      } seconds...`
-    );
-    this.interval = setInterval(
-      this.poll,
-      config.pollingIntervalSeconds * 1000
-    );
+    for (const subscription of config.subscriptions) {
+      if (subscription.mode === "polling") {
+        const { pollingIntervalSeconds } = subscription;
+        logger.info(
+          `Starting polling ${this.getSanitizedUrl(
+            subscription
+          )} every ${pollingIntervalSeconds} seconds...`
+        );
+        this.intervals.push(
+          setInterval(
+            async () => this.poll(subscription),
+            pollingIntervalSeconds * 1000
+          )
+        );
+      } else if (subscription.mode === "webhook") {
+        if (!this.app) {
+          this.app = express();
+          this.app.use(express.json());
+        }
+        logger.info(
+          `Configuring subscription to webhook at ${subscription.path}`
+        );
+        this.app.post(
+          subscription.path,
+          this.getWebhookRequestHandler(subscription)
+        );
+      } else {
+        throw new Error(
+          `Invalid subscription mode: ${(subscription as any).mode}`
+        );
+      }
+    }
+    if (this.app) {
+      logger.info(
+        `Listening for webhook requests at http://localhost:${
+          config.webhookPort ?? 80
+        }`
+      );
+      this.app.get("/health", (req, res) => res.send());
+      this.app.listen(config.webhookPort ?? 80);
+    }
   }
   async stop() {
     this.logger.info(`Stopping polling...`);
-    clearInterval(this.interval);
+    for (const interval of this.intervals) {
+      clearInterval(interval);
+    }
   }
 }
