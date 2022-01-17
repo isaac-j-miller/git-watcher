@@ -1,5 +1,6 @@
 import argparse from "argparse";
 import path from "path";
+import { getLogger } from "./logger";
 import { Configuration } from "./config";
 import { PollerListener } from "./poller";
 
@@ -23,6 +24,12 @@ async function main() {
   const args: CliArgs = parser.parse_args(unparsedArgs);
   const { configFile, verbose } = args;
   const config = Configuration.getInstance(path.resolve(configFile), verbose);
+  if (config.runtimeConfig.logging?.file?.path) {
+    const logger = getLogger(config.runtimeConfig, "root");
+    logger.info(
+      `Writing logs to ${path.resolve(config.runtimeConfig.logging.file.path)}`
+    );
+  }
   const poller = new PollerListener(config.runtimeConfig);
   await poller.init();
 }

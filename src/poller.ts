@@ -77,13 +77,11 @@ export class PollerListener {
   ): Promise<{ stdout: string; stderr: string } | undefined> {
     const { logger } = this;
     const actionName = this.getActionName(action);
-    logger.info(`Running ${actionName}...`);
     try {
       if (action.actionType === "inline-script") {
         const res = await asyncExec(action.inlineScript, {
           cwd: action.cwd,
         });
-        logger.info(`Successfully executed ${actionName}`);
         return res;
       } else if (action.actionType === "file-script") {
         const res = await asyncExec(
@@ -92,7 +90,6 @@ export class PollerListener {
             cwd: action.cwd,
           }
         );
-        logger.info(`Successfully executed ${actionName}`);
         return res;
       } else {
         throw new Error(`Unknown action type: ${(action as any).actionType}`);
@@ -108,6 +105,8 @@ export class PollerListener {
   private async takeActions(subscription: Subscription) {
     const { actionLogger } = this;
     for await (const action of subscription.onEvent) {
+      const actionName = this.getActionName(action);
+      actionLogger.info(`Running ${actionName}...`);
       try {
         const resp = await this.takeAction(action);
         if (resp) {
@@ -116,9 +115,10 @@ export class PollerListener {
           const errLogs = processLogs(stderr);
           infoLogs.forEach((infoLog) => infoLog && actionLogger.info(infoLog));
           errLogs.forEach((errLog) => errLog && actionLogger.error(errLog));
+
+          actionLogger.info(`Successfully executed ${actionName}`);
         }
       } catch (err) {
-        const actionName = this.getActionName(action);
         actionLogger.error(
           `Error while running ${actionName}: ${err.name} ${err.message}`
         );
