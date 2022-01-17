@@ -1,6 +1,6 @@
 {
   "name": "lite-ci",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "super lightweight CI tool",
   "main": "main.js",
   "bin": {
@@ -16,7 +16,7 @@
     "prettier": "prettier --write .",
     "prettier-check": "prettier --check .",
     "lint": "eslint . --ext .ts",
-    "build": "webpack build && npm run generate-schema && cp -a ./schema ./dist && cp ./package.json ./dist/package.json && cp ./bin ./dist/bin",
+    "build": "webpack build && npm run generate-schema && cp -a ./schema ./dist && cp ./package.json ./dist/package.json && cp ./bin ./dist/bin && cp ./README.md ./dist/README.md",
     "generate-schema": "ts-json-schema-generator --path ./src/config/types.ts --type RuntimeConfig --out schema/RuntimeConfig.json",
     "check-generated-schema": "ts-json-schema-generator --path ./src/config/types.ts --type RuntimeConfig --out .tmp/RuntimeConfig.json && diff -q .tmp/RuntimeConfig.json schema/RuntimeConfig.json",
     "check": "npm run check-ts && npm test && npm run prettier-check && npm run lint && npm run check-generated-schema"
