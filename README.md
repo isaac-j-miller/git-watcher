@@ -9,9 +9,9 @@ super lightweight CI tool
 
 # Introduction
 
-I have a project (https://github.com/isaac-j-miller/mirror-v2) which I deploy to a raspberry pi in my home. I don't want to SSH into the raspberry pi and update or restart the project every time I update the application, and I don't want to stand up a whole CI server on the it because it's a raspberry pi zero w, and it doesn't have a lot of resources. So I wrote this simple miniature CI tool to listen for github webhooks and/or poll GitHub's API to check for new commits on a specified branch, if it isn't possible or desirable to set up NGINX, port forwarding, a static IP, security, etc.
+I have a project (https://github.com/isaac-j-miller/mirror-v2) which I deploy to a raspberry pi in my home. I don't want to SSH into the raspberry pi and update or restart the project every time I update the application, and I don't want to stand up a whole CI server on it because it's a raspberry pi zero w, and it doesn't have a lot of resources. So I wrote this simple miniature CI tool to listen for github webhooks and/or poll GitHub's API to check for new commits on a specified branch, if it isn't possible or desirable to set up NGINX, port forwarding, a static IP, security, etc.
 
-Check out https://github.com/isaac-j-miller/mirror-v2 for a poorly-documented usage example. Additionally, there are two examples included in this readme.
+Check out https://github.com/isaac-j-miller/mirror-v2 for a poorly-documented, but functional usage example. Additionally, there are two examples included in this readme.
 
 # Installation
 
