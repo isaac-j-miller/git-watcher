@@ -140,6 +140,9 @@ For example, to configure logging so that logs to file are JSON-formatted with l
 # Quick Start Guide
 
 To get started, install the project using `npm install lite-ci`. Then, set up a config file in a directory of your choice. The actions defined are just examples, so replace them with whatever is appropriate for your setup.
+
+NOTE: if you use a polling configuration, please be aware that unauthenticated requests to GitHub are rate limited at 60/hour. So if you do this, either set `pollingIntervalSeconds` to at least 60 or add a personal access token, preferably via environment variable and set the environment variable name in your `Subscription.personalAccessTokenEnvVar` field.
+
 Template 1 (polling subscription):
 
 ```json
