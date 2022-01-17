@@ -108,13 +108,20 @@ export class PollerListener {
   private async takeActions(subscription: Subscription) {
     const { actionLogger } = this;
     for await (const action of subscription.onEvent) {
-      const resp = await this.takeAction(action);
-      if (resp) {
-        const { stdout, stderr } = resp;
-        const infoLogs = processLogs(stdout);
-        const errLogs = processLogs(stderr);
-        infoLogs.forEach((infoLog) => infoLog && actionLogger.info(infoLog));
-        errLogs.forEach((errLog) => errLog && actionLogger.error(errLog));
+      try {
+        const resp = await this.takeAction(action);
+        if (resp) {
+          const { stdout, stderr } = resp;
+          const infoLogs = processLogs(stdout);
+          const errLogs = processLogs(stderr);
+          infoLogs.forEach((infoLog) => infoLog && actionLogger.info(infoLog));
+          errLogs.forEach((errLog) => errLog && actionLogger.error(errLog));
+        }
+      } catch (err) {
+        const actionName = this.getActionName(action);
+        actionLogger.error(
+          `Error while running ${actionName}: ${err.name} ${err.message}`
+        );
       }
     }
   }
