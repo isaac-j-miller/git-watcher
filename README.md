@@ -9,7 +9,9 @@ super lightweight CI tool
 
 # Introduction
 
-I have a project (https://github.com/isaac-j-miller/mirror-v2) which I deploy to a raspberry pi in my home. I don't want to SSH into the raspberry pi and update or restart the project every time I update the application, and I don't want to stand up a whole CI server on the it because it's a raspberry pi zero w, and it doesn't have a lot of resources. So I wrote this simple miniature CI tool to listen for github webhooks and/or poll GitHub's API to check for new commits on a specified branch, if it isn't possible or desirable to set up NGINX, port forwarding, a static IP, security, etc.
+I have a project (https://github.com/isaac-j-miller/mirror-v2) which I deploy to a raspberry pi in my home. I don't want to SSH into the raspberry pi and update or restart the project every time I update the application, and I don't want to stand up a whole CI server on it because it's a raspberry pi zero w, and it doesn't have a lot of resources. So I wrote this simple miniature CI tool to listen for github webhooks and/or poll GitHub's API to check for new commits on a specified branch, if it isn't possible or desirable to set up NGINX, port forwarding, a static IP, security, etc.
+
+Check out https://github.com/isaac-j-miller/mirror-v2 for a poorly-documented, but functional usage example. Additionally, there are two examples included in this readme.
 
 # Installation
 
@@ -29,6 +31,8 @@ To install by cloning the git repo, clone the repo (`git clone https://github.co
 
 After installing using the instructions in the previous section, the usage of this project is fairly straightforward. You will need to write a config file (see `test-config-file.json` for an example) according to the schema in `schema/RuntimeConfig.json`. When you run the program, it will validate the runtime configuration and error out if it is invalid.
 Once you've written your config file, you can start up the mini CI server using `npx lite-ci {config file path}` if you opted to install using npm, or `./lite-ci {config file path}` if you opted to install by cloning the git repo. You can add the `--verbose` flag to enable verbose logging, overriding the loglevel specified in your config file.
+
+You can use this as a standalone software installation by installing with the `-g` or `--global` flag, or you can install it as a dependency of a nodejs project, like is done [here](https://github.com/isaac-j-miller/mirror-v2). The latter is convenient if the server serves a single purpose, such as displaying a locally-hosted webpage as a kiosk.
 
 # Configuration
 
@@ -254,3 +258,5 @@ If you are interesting in contributing to this project, the following NPM script
 - `lint`: run lint check
 - `build`: build the project
 - `generate-schema`: generate schema for RuntimeConfig
+- `check-generated-schema`: ensure that generated schema is up-to-date
+- `check`: run all automated checks
