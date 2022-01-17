@@ -69,7 +69,7 @@ You may also configure a webhook listener by using `webhook` mode. This will cau
 
 The original intention for this project was to run actions on pushes, but by specifying the `actions` field, you can configure it to run scripts for other actions as well.
 
-### OnCommitAction
+### OnEventAction
 
 This is the `Subscription.onEvent` field. There are two types of actions: `inline-script` and `file-script`. The following options are common to both of them:
 
