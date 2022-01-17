@@ -1,6 +1,6 @@
 {
   "name": "lite-ci",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "super lightweight CI tool",
   "main": "main.js",
   "bin": {
@@ -28,7 +28,9 @@
     "express",
     "typescript",
     "github",
-    "webhook"
+    "webhook",
+    "devops",
+    "polling"
   ],
   "repository": {
     "type": "git",

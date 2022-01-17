@@ -180,6 +180,7 @@ export class PollerListener {
         return;
       }
       if (e.response?.status === 403 || e.response?.status === 401) {
+        // TODO: distinguish between invalid credentials and rate-limiting
         logger.fatal(`Error: Invalid credentials when polling github API`);
       } else if (e.response?.status === 404) {
         logger.error(
