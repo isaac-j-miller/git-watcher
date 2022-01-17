@@ -1,0 +1,20 @@
+#!/bin/bash
+
+cd /home/pi/mirror-v2
+
+source .env
+
+./wait github.com 443
+
+git reset origin --hard
+git pull
+
+aws s3 cp --recursive s3://magic-mirror-v2/ ./dist
+npm install
+
+npm run serve &
+npm run lite-ci &
+
+./wait 127.0.0.1 3000
+
+chromium-browser --kiosk --allow-insecure-localhost --disable-session-crashed-bubble --disable-infobars 127.0.0.1:3000
