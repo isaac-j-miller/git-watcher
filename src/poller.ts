@@ -87,7 +87,7 @@ export class PollerListener {
         return res;
       } else if (action.actionType === "file-script") {
         const res = await asyncExec(
-          `${action.scriptFilePath} ${(action.scriptArgs ?? []).join(" ")}`,
+          `./${action.scriptFilePath} ${(action.scriptArgs ?? []).join(" ")}`,
           {
             cwd: action.cwd,
           }
