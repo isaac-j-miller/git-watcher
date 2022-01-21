@@ -1,7 +1,8 @@
 import { exec, ExecException } from "child_process";
 import { promisify } from "util";
+import crypto from "crypto";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
-import express, { Request, Response, Express } from "express";
+import express, { Request, Response, Express, NextFunction } from "express";
 import {
   OnEventAction,
   PollSubscription,
@@ -56,10 +57,14 @@ export class PollerListener {
     return `${subscription.username}:${subscription.repositoryName}:${subscription.branchName}`;
   }
   private getPat(subscription: PollSubscription): string | null {
-    if (subscription.personalAccessToken) {
-      return subscription.personalAccessToken;
-    } else if (subscription.personalAccessTokenEnvVar) {
+    if (subscription.personalAccessTokenEnvVar) {
       return process.env[subscription.personalAccessTokenEnvVar] ?? null;
+    }
+    return null;
+  }
+  private getSecret(subscription: WebhookSubscription): string {
+    if (subscription.secretEnvVar) {
+      return process.env[subscription.secretEnvVar] ?? null;
     }
     return null;
   }
@@ -193,6 +198,55 @@ export class PollerListener {
       }
     }
   };
+  private getWebhookRequestMiddleware = (subscription: WebhookSubscription) => {
+    const secret = this.getSecret(subscription);
+
+    const getAlgo = (req: Request) => {
+      if (req.headers["X-Hub-Signature-256"]) {
+        return {
+          algo: "sha256",
+          signature: req.headers["X-Hub-Signature-256"],
+        };
+      }
+      if (req.headers["X-Hub-Signature"]) {
+        return {
+          algo: "sha1",
+          signature: req.headers["X-Hub-Signature"],
+        };
+      }
+      return null;
+    };
+
+    const middleware = (req: Request, res: Response, next: NextFunction) => {
+      const { logger } = this;
+      if (secret) {
+        const algoAndSignature = getAlgo(req);
+        if (!algoAndSignature) {
+          res.status(401);
+          logger.error(
+            "Request received with no signature but signature is expected"
+          );
+          next(new Error("No signature provided!"));
+          return;
+        }
+        const { algo, signature } = algoAndSignature;
+        const computedSignature = crypto
+          .createHmac(algo, secret)
+          .update((req as any).rawBody)
+          .digest("hex");
+        if (signature !== computedSignature) {
+          res.status(403);
+          logger.error(
+            `Invalid signature: received ${signature}, got ${computedSignature}`
+          );
+          next(new Error("Invalid signature!"));
+          return;
+        }
+      }
+      next();
+    };
+    return middleware;
+  };
   private getWebhookRequestHandler = (subscription: WebhookSubscription) => {
     const handler = async (
       req: Request<unknown, unknown, WebhookRequest>,
@@ -239,6 +293,10 @@ export class PollerListener {
         }
         logger.info(
           `Configuring subscription to webhook at ${subscription.path}`
+        );
+        this.app.use(
+          subscription.path,
+          this.getWebhookRequestMiddleware(subscription)
         );
         this.app.post(
           subscription.path,
