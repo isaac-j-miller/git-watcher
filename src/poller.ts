@@ -256,9 +256,6 @@ export class PollerListener {
               `Invalid signature: got ${signature}, computed ${computedSignature}`
             );
             next(new Error("Invalid signature!"));
-          } else {
-            logger.debug(`Signature matches`);
-            (req as any).signatureMatches = true;
           }
         })
       );
@@ -272,14 +269,7 @@ export class PollerListener {
       res: Response
     ) => {
       const { logger } = this;
-      const matches = !!(req as any).signatureMatches;
-      logger.info(
-        `Received webhook request: ${req.url}; signature matches: ${matches}`
-      );
-      if (!matches) {
-        res.status(403);
-        res.send("Invalid signature");
-      }
+      logger.info(`Received webhook request: ${req.url}`);
       try {
         if (subscription.actions.includes(req.body.action)) {
           await this.takeActions(subscription);
