@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import express from "express";
 import axios, { AxiosError } from "axios";
 import path from "path";
@@ -34,21 +35,35 @@ app.put(
         const url =
           "http://" +
           path.join(`localhost:${webhookPort ?? 80}`, subscription.path);
-        try {
-          await axios.post(url, {
-            action: "push",
-            sender: "mock",
-            repository: {
-              name: reponame,
-              owner: {
-                login: username,
-              },
+        const data = {
+          action: "push",
+          sender: "mock",
+          repository: {
+            name: reponame,
+            owner: {
+              login: username,
             },
-          });
+          },
+        };
+        const stringData = JSON.stringify(data);
+        const secret = subscription.secretEnvVar
+          ? process.env[subscription.secretEnvVar]
+          : undefined;
+        const headers: Record<string, string> = {};
+        if (secret) {
+          const hash = crypto
+            .createHmac("sha256", secret)
+            .update(stringData)
+            .digest("hex");
+          headers["X-Hub-Signature-256"] = hash;
+          logger.debug(`Computed hash for webhook request: ${hash}`);
+        }
+        try {
+          await axios.post(url, data, { headers });
         } catch (err) {
           const error = err as AxiosError;
           logger.error(
-            `Webhook POST to ${url} failed with status ${error.response.status}`
+            `Webhook POST to ${url} failed with status ${error?.response?.status}`
           );
         }
       }

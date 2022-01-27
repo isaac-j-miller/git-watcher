@@ -1,8 +1,15 @@
 import { exec, ExecException } from "child_process";
 import { promisify } from "util";
 import crypto from "crypto";
+import concat from "concat-stream";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
-import express, { Request, Response, Express, NextFunction } from "express";
+import express, {
+  Request,
+  Response,
+  Express,
+  NextFunction,
+  RequestHandler,
+} from "express";
 import {
   OnEventAction,
   PollSubscription,
@@ -202,47 +209,59 @@ export class PollerListener {
     const secret = this.getSecret(subscription);
 
     const getAlgo = (req: Request) => {
-      if (req.headers["X-Hub-Signature-256"]) {
+      if (req.header("X-Hub-Signature-256")) {
         return {
           algo: "sha256",
-          signature: req.headers["X-Hub-Signature-256"],
+          signature: req.header("X-Hub-Signature-256"),
         };
       }
-      if (req.headers["X-Hub-Signature"]) {
+      if (req.header("X-Hub-Signature")) {
         return {
           algo: "sha1",
-          signature: req.headers["X-Hub-Signature"],
+          signature: req.header("X-Hub-Signature"),
         };
       }
       return null;
     };
 
-    const middleware = (req: Request, res: Response, next: NextFunction) => {
+    const middleware: RequestHandler = (
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) => {
       const { logger } = this;
-      if (secret) {
-        const algoAndSignature = getAlgo(req);
-        if (!algoAndSignature) {
-          res.status(401);
-          logger.error(
-            "Request received with no signature but signature is expected"
-          );
-          next(new Error("No signature provided!"));
-          return;
-        }
-        const { algo, signature } = algoAndSignature;
-        const computedSignature = crypto
-          .createHmac(algo, secret)
-          .update((req as any).rawBody)
-          .digest("hex");
-        if (signature !== computedSignature) {
-          res.status(403);
-          logger.error(
-            `Invalid signature: received ${signature}, got ${computedSignature}`
-          );
-          next(new Error("Invalid signature!"));
-          return;
-        }
+      if (!secret) {
+        next();
+        return;
       }
+      req.pipe(
+        concat((data) => {
+          const algoAndSignature = getAlgo(req);
+          if (!algoAndSignature) {
+            res.status(401);
+            logger.error(
+              "Request received with no signature but signature is expected"
+            );
+            next(new Error("No signature provided!"));
+            return;
+          }
+          const { algo, signature } = algoAndSignature;
+          const computedSignature = crypto
+            .createHmac(algo, secret)
+            .update(data)
+            .digest("hex");
+          if (signature !== computedSignature) {
+            res.status(403);
+            logger.error(
+              `Invalid signature: got ${signature}, computed ${computedSignature}`
+            );
+            next(new Error("Invalid signature!"));
+          } else {
+            logger.debug(`Signature matches`);
+            (req as any).signatureMatches = true;
+          }
+        })
+      );
       next();
     };
     return middleware;
@@ -253,7 +272,14 @@ export class PollerListener {
       res: Response
     ) => {
       const { logger } = this;
-      logger.info(`Received webhook request: ${req.url}`);
+      const matches = !!(req as any).signatureMatches;
+      logger.info(
+        `Received webhook request: ${req.url}; signature matches: ${matches}`
+      );
+      if (!matches) {
+        res.status(403);
+        res.send("Invalid signature");
+      }
       try {
         if (subscription.actions.includes(req.body.action)) {
           await this.takeActions(subscription);
@@ -289,7 +315,6 @@ export class PollerListener {
       } else if (subscription.mode === "webhook") {
         if (!this.app) {
           this.app = express();
-          this.app.use(express.json());
         }
         logger.info(
           `Configuring subscription to webhook at ${subscription.path}`
@@ -298,6 +323,7 @@ export class PollerListener {
           subscription.path,
           this.getWebhookRequestMiddleware(subscription)
         );
+        this.app.use(subscription.path, express.json());
         this.app.post(
           subscription.path,
           this.getWebhookRequestHandler(subscription)

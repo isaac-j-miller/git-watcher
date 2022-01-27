@@ -173,9 +173,6 @@
             "overrideEndpoint": {
               "type": "string"
             },
-            "personalAccessToken": {
-              "type": "string"
-            },
             "personalAccessTokenEnvVar": {
               "type": "string"
             },
@@ -224,6 +221,9 @@
               "type": "string"
             },
             "repositoryName": {
+              "type": "string"
+            },
+            "secretEnvVar": {
               "type": "string"
             },
             "username": {
