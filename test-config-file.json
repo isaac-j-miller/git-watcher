@@ -29,6 +29,7 @@
       "branchName": "main",
       "mode": "webhook",
       "path": "/webhooks/repos/another-repo/main",
+      "secretEnvVar": "LITE_CI_MOCK_SECRET",
       "actions": ["push"],
       "onEvent": [
         {

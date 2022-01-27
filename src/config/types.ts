@@ -33,11 +33,11 @@ export type Subscription = {
       overrideEndpoint?: string;
       extraHeaders?: Record<string, string>;
       personalAccessTokenEnvVar?: string;
-      personalAccessToken?: string;
     }
   | {
       mode: "webhook";
       path: string;
+      secretEnvVar?: string;
       actions: string[];
     }
 );
