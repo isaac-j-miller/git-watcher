@@ -18,7 +18,8 @@ async function main() {
   program.option("--verbose", "whether to be verbose", false);
   program.parse();
   const args: CliArgs = program.opts();
-  const { configFile, verbose } = args;
+  const { verbose } = args;
+  const [configFile] = program.processedArgs;
   const config = Configuration.getInstance(path.resolve(configFile), verbose);
   if (config.runtimeConfig.logging?.file?.path) {
     const logger = getLogger(config.runtimeConfig, "root");
