@@ -4,3 +4,4 @@ node_modules
 .logfile
 .tmp
 schema
+pnpm-lock.yaml

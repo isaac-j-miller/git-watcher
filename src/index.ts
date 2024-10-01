@@ -1,4 +1,4 @@
-import argparse from "argparse";
+import { program } from "commander";
 import path from "path";
 import { getLogger } from "./logger";
 import { Configuration } from "./config";
@@ -9,19 +9,11 @@ type CliArgs = {
   verbose: boolean;
 };
 
-const parser = new argparse.ArgumentParser();
-
-parser.add_argument("configFile");
-
-parser.add_argument("--verbose", {
-  dest: "verbose",
-  action: "store_true",
-});
-
 async function main() {
-  const indexOf = process.argv.findIndex((arg) => arg.endsWith(__filename));
-  const unparsedArgs = process.argv.slice(indexOf + 1);
-  const args: CliArgs = parser.parse_args(unparsedArgs);
+  program.argument("[configFile]", "Path to the configfile", "./.lite-ci.config.json");
+  program.option("--verbose", "whether to be verbose", false);
+  program.parse()
+  const args: CliArgs = program.opts()
   const { configFile, verbose } = args;
   const config = Configuration.getInstance(path.resolve(configFile), verbose);
   if (config.runtimeConfig.logging?.file?.path) {

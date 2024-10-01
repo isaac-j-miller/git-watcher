@@ -40,7 +40,7 @@ type WebhookRequest = {
 // TODO: break up this mega class into a poller and a listener
 
 export class PollerListener {
-  private intervals: NodeJS.Timer[];
+  private intervals: NodeJS.Timeout[];
   private auth: Map<string, string>;
   private currentShaMap: Map<string, string>;
   private logger: Logger;
