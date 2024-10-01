@@ -11,16 +11,23 @@ jobs:
     environment: publish
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: install pnpm
+        run: npm i -g pnpm@8 --force
 
       - name: install packages
-        run: npm install
+        run: pnpm install
 
       - name: check types
-        run: npm run check-ts
+        run: pnpm check-ts
 
       - name: build
-        run: npm run build --production
+        run: pnpm build -- --production
 
       - uses: JS-DevTools/npm-publish@v1
         with:
