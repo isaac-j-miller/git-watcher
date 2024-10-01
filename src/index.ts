@@ -10,10 +10,14 @@ type CliArgs = {
 };
 
 async function main() {
-  program.argument("[configFile]", "Path to the configfile", "./.lite-ci.config.json");
+  program.argument(
+    "[configFile]",
+    "Path to the configfile",
+    "./.lite-ci.config.json"
+  );
   program.option("--verbose", "whether to be verbose", false);
-  program.parse()
-  const args: CliArgs = program.opts()
+  program.parse();
+  const args: CliArgs = program.opts();
   const { configFile, verbose } = args;
   const config = Configuration.getInstance(path.resolve(configFile), verbose);
   if (config.runtimeConfig.logging?.file?.path) {
