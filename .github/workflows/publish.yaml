@@ -27,7 +27,9 @@ jobs:
         run: pnpm check-ts
 
       - name: build
-        run: pnpm build -- --production
+        run: pnpm build
+        env:
+          NODE_ENV: production
 
       - uses: JS-DevTools/npm-publish@v1
         with:
